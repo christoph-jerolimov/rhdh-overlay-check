@@ -1,4 +1,5 @@
 node_modules/
 .clones/
-.yarn/
+.yarn/*
+!.yarn/releases
 .pnp.*
