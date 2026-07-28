@@ -66,6 +66,8 @@ interface Row {
   packageName: string;
   packageVersion: string;
   status: string;
+  /** Short status category used for the grouped summary. */
+  group: string;
 }
 
 function normalizeRepoUrl(url: string): string {
@@ -114,6 +116,7 @@ function checkWorkspace(workspace: string): Row[] {
       packageName: '',
       packageVersion: '',
       status: `ERROR: could not read ${sourceJsonPath}: ${(error as Error).message}`,
+      group: 'ERROR: could not read source.json',
     });
     return rows;
   }
@@ -128,6 +131,7 @@ function checkWorkspace(workspace: string): Row[] {
       packageName: '',
       packageVersion: '',
       status: `ERROR: unknown source repository '${source.repo}'`,
+      group: 'ERROR: unknown source repository',
     });
     return rows;
   }
@@ -155,6 +159,7 @@ function checkWorkspace(workspace: string): Row[] {
       packageName: '',
       packageVersion: '',
       status: `ERROR: could not read ${pluginsListPath}: ${(error as Error).message}`,
+      group: 'ERROR: could not read plugins-list.yaml',
     });
     return rows;
   }
@@ -166,6 +171,7 @@ function checkWorkspace(workspace: string): Row[] {
       packageName: '',
       packageVersion: '',
       status: `ERROR: no package folders found in ${pluginsListPath}`,
+      group: 'ERROR: no package folders found',
     });
     return rows;
   }
@@ -180,6 +186,7 @@ function checkWorkspace(workspace: string): Row[] {
       packageName: '',
       packageVersion: '',
       status: 'OK',
+      group: 'OK',
     };
     rows.push(row);
     const errors: string[] = [];
@@ -197,6 +204,7 @@ function checkWorkspace(workspace: string): Row[] {
       packageJson = readJson(packageJsonPath);
     } catch (error) {
       row.status = `ERROR: could not read ${packageJsonPath}: ${(error as Error).message}`;
+      row.group = 'ERROR: could not read package.json';
       continue;
     }
     row.packageName = String(packageJson.name ?? '');
@@ -210,10 +218,12 @@ function checkWorkspace(workspace: string): Row[] {
     );
     if (matches.length === 0 && packageFolder.endsWith('-test')) {
       row.status = 'OK (test package without metadata)';
+      row.group = 'OK (test package without metadata)';
     } else if (matches.length !== 1) {
       errors.push(
         `expected exactly 1 metadata yaml with spec.packageName '${row.packageName}', found ${matches.length}`,
       );
+      row.group = 'ERROR: expected exactly 1 metadata yaml';
     } else {
       const { file, doc } = matches[0];
 
@@ -239,6 +249,9 @@ function checkWorkspace(workspace: string): Row[] {
 
     if (errors.length > 0) {
       row.status = `ERROR: ${errors.join('; ')}`;
+      if (row.group === 'OK') {
+        row.group = 'ERROR: version mismatch';
+      }
     }
   }
 
@@ -265,19 +278,42 @@ function toCells(row: Row): string[] {
   ];
 }
 
-function printTable(rows: Row[]) {
-  const table = [HEADERS, ...rows.map(toCells)];
-  const widths = HEADERS.map((_, column) =>
+const SUMMARY_HEADERS = ['Status', 'Count'];
+
+/** Groups the rows by status category, ok statuses first, then by count. */
+function summarize(rows: Row[]): [string, number][] {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    counts.set(row.group, (counts.get(row.group) ?? 0) + 1);
+  }
+  return [...counts.entries()].sort(
+    ([groupA, countA], [groupB, countB]) =>
+      Number(groupB.startsWith('OK')) - Number(groupA.startsWith('OK')) ||
+      countB - countA ||
+      groupA.localeCompare(groupB),
+  );
+}
+
+function formatTable(headers: string[], rows: string[][]): string[] {
+  const table = [headers, ...rows];
+  const widths = headers.map((_, column) =>
     Math.max(...table.map(cells => cells[column].length)),
   );
   const line = (cells: string[]) =>
     `| ${cells.map((cell, column) => cell.padEnd(widths[column])).join(' | ')} |`;
   const separator = `| ${widths.map(width => '-'.repeat(width)).join(' | ')} |`;
 
-  console.log(line(HEADERS));
-  console.log(separator);
-  for (const row of rows) {
-    console.log(line(toCells(row)));
+  return [line(headers), separator, ...rows.map(line)];
+}
+
+function printTables(rows: Row[]) {
+  const summary = summarize(rows).map(([group, count]) => [group, String(count)]);
+  for (const line of formatTable(SUMMARY_HEADERS, summary)) {
+    console.log(line);
+  }
+  console.log();
+  for (const line of formatTable(HEADERS, rows.map(toCells))) {
+    console.log(line);
   }
 }
 
@@ -291,6 +327,10 @@ function writeGitHubSummary(rows: Row[]) {
   const lines = [
     '## Overlay version check',
     '',
+    `| ${SUMMARY_HEADERS.join(' | ')} |`,
+    `| ${SUMMARY_HEADERS.map(() => '---').join(' | ')} |`,
+    ...summarize(rows).map(([group, count]) => `| ${escape(group)} | ${count} |`),
+    '',
     `| ${HEADERS.join(' | ')} |`,
     `| ${HEADERS.map(() => '---').join(' | ')} |`,
     ...rows.map(row => `| ${toCells(row).map(escape).join(' | ')} |`),
@@ -301,7 +341,7 @@ function writeGitHubSummary(rows: Row[]) {
 
 const rows = WORKSPACES.flatMap(checkWorkspace);
 
-printTable(rows);
+printTables(rows);
 writeGitHubSummary(rows);
 
 const errorCount = rows.filter(row => !row.status.startsWith('OK')).length;
