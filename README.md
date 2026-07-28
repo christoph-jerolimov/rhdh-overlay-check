@@ -46,8 +46,9 @@ repositories in the following folders relative to this repository:
 | `OVERLAY_DIR`        | `../../rhd/rhdh-plugin-export-overlays` | https://github.com/redhat-developer/rhdh-plugin-export-overlays |
 | `RHDH_PLUGINS_DIR`   | `../../rhd/rhdh-plugins`                | https://github.com/redhat-developer/rhdh-plugins              |
 
-This project uses Yarn 4 via [corepack](https://nodejs.org/api/corepack.html)
-(`corepack enable`).
+This project uses Yarn 4 via a committed release
+(`.yarn/releases/yarn-4.17.1.cjs`) — any installed yarn version
+delegates to it automatically.
 
 ```sh
 yarn install
