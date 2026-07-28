@@ -1,0 +1,16 @@
+{
+  "name": "rhdh-overlay-check",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Checks that plugin versions in rhdh-plugin-export-overlays match the latest versions in the source repositories",
+  "type": "module",
+  "scripts": {
+    "check": "tsx scripts/check-overlay-versions.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "yaml": "^2.6.0"
+  }
+}
