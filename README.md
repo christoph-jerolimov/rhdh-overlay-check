@@ -36,6 +36,8 @@ For each workspace, the script:
    3. Checks that `spec.dynamicArtifact` in that yaml ends with
       `'__' + the package version`.
    4. Checks that `spec.version` in that yaml matches that version.
+      Mismatches are classified with semver as major, minor, or patch
+      version changes.
 
 ## Running locally
 
