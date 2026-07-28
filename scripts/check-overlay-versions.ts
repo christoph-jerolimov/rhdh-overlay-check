@@ -202,11 +202,15 @@ function checkWorkspace(workspace: string): Row[] {
     row.packageName = String(packageJson.name ?? '');
     row.packageVersion = String(packageJson.version ?? '');
 
-    // 3.2. There must be exactly one metadata yaml whose spec.packageName matches.
+    // 3.2. There must be exactly one metadata yaml whose spec.packageName
+    // matches. Package folders ending with '-test' don't necessarily need
+    // a metadata yaml.
     const matches = metadataFiles.filter(
       ({ doc }) => doc?.spec?.packageName === row.packageName,
     );
-    if (matches.length !== 1) {
+    if (matches.length === 0 && packageFolder.endsWith('-test')) {
+      row.status = 'OK (test package without metadata)';
+    } else if (matches.length !== 1) {
       errors.push(
         `expected exactly 1 metadata yaml with spec.packageName '${row.packageName}', found ${matches.length}`,
       );
@@ -300,6 +304,6 @@ const rows = WORKSPACES.flatMap(checkWorkspace);
 printTable(rows);
 writeGitHubSummary(rows);
 
-const errorCount = rows.filter(row => row.status !== 'OK').length;
+const errorCount = rows.filter(row => !row.status.startsWith('OK')).length;
 console.log();
 console.log(`${rows.length} checks, ${rows.length - errorCount} ok, ${errorCount} with errors.`);

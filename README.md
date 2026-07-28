@@ -31,6 +31,8 @@ For each workspace, the script:
       source repository.
    2. Expects exactly one yaml in `workspaces/$workspace/metadata/*.yaml`
       whose `spec.packageName` matches the source package name.
+      (Package folders ending with `-test` don't necessarily need a
+      metadata yaml.)
    3. Checks that `spec.dynamicArtifact` in that yaml ends with
       `'__' + the package version`.
    4. Checks that `spec.version` in that yaml matches that version.
