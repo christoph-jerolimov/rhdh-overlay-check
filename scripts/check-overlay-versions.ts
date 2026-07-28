@@ -16,6 +16,7 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import * as semver from 'semver';
 import * as YAML from 'yaml';
 
 const WORKSPACES = [
@@ -238,12 +239,22 @@ function checkWorkspace(workspace: string): Row[] {
         );
       }
 
-      // 3.4. spec.version must match the package version.
+      // 3.4. spec.version must match the package version. Semver is used
+      // to tell apart major, minor, and patch version changes.
       const metadataVersion = String(doc.spec?.version ?? '');
       if (metadataVersion !== row.packageVersion) {
+        const diff =
+          semver.valid(metadataVersion) && semver.valid(row.packageVersion)
+            ? semver.diff(metadataVersion, row.packageVersion)
+            : null;
         errors.push(
-          `${file}: spec.version '${metadataVersion}' does not match package version '${row.packageVersion}'`,
+          `${file}: spec.version '${metadataVersion}' does not match package version '${row.packageVersion}'${
+            diff ? ` (${diff} version change)` : ''
+          }`,
         );
+        row.group = diff
+          ? `ERROR: ${diff} version change`
+          : 'ERROR: version mismatch';
       }
     }
 
