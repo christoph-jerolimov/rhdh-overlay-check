@@ -37,6 +37,10 @@ jobs:
           repository: redhat-developer/rhdh-plugins
           path: ${{ env.RHDH_PLUGINS_DIR }}
 
+      - name: Enable corepack
+        # Provides the yarn version pinned in the packageManager field
+        run: corepack enable
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -44,7 +48,7 @@ jobs:
           cache: yarn
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Check overlay versions
         # Prints the result table to the log and writes it as a markdown

@@ -1,2 +1,4 @@
 node_modules/
 .clones/
+.yarn/
+.pnp.*
