@@ -9,9 +9,11 @@ and [redhat-developer/rhdh-plugins](https://github.com/redhat-developer/rhdh-plu
 ## GitHub workflow
 
 The [Check overlay versions](.github/workflows/check-overlay-versions.yaml)
-workflow runs once a day on workdays (Mon-Fri, 06:00 UTC) and can also be
-triggered manually. It clones the three repositories and runs the check
-script. The result table is printed to the log and to the job summary.
+workflow runs once a day on workdays (Mon-Fri, 06:00 UTC), on pull requests,
+and can also be triggered manually. It clones the three repositories into
+`.clones/` and passes the clone locations to the check script via the
+environment variables `BCP_DIR`, `OVERLAY_DIR`, and `RHDH_PLUGINS_DIR`.
+The result table is printed to the log and to the GitHub workflow summary.
 The workflow never fails on version mismatches.
 
 ## Checks
@@ -35,11 +37,27 @@ For each workspace, the script:
 
 ## Running locally
 
+When the environment variables are not defined, the script expects the
+repositories in the following folders relative to this repository:
+
+| Environment variable | Default                                 | Repository                                                    |
+| -------------------- | --------------------------------------- | ------------------------------------------------------------- |
+| `BCP_DIR`            | `../../backstage/community-plugins`     | https://github.com/backstage/community-plugins                |
+| `OVERLAY_DIR`        | `../../rhd/rhdh-plugin-export-overlays` | https://github.com/redhat-developer/rhdh-plugin-export-overlays |
+| `RHDH_PLUGINS_DIR`   | `../../rhd/rhdh-plugins`                | https://github.com/redhat-developer/rhdh-plugins              |
+
+```sh
+npm install
+npm run check
+```
+
+Or with explicit clone locations:
+
 ```sh
 git clone --depth 1 https://github.com/backstage/community-plugins .clones/bcp
 git clone --depth 1 https://github.com/redhat-developer/rhdh-plugin-export-overlays .clones/overlay
 git clone --depth 1 https://github.com/redhat-developer/rhdh-plugins .clones/rhdh-plugins
 
 npm install
-npm run check
+BCP_DIR=.clones/bcp OVERLAY_DIR=.clones/overlay RHDH_PLUGINS_DIR=.clones/rhdh-plugins npm run check
 ```

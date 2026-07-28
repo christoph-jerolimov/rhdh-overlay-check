@@ -3,10 +3,13 @@
  * repository match the latest versions in their source repositories
  * (backstage/community-plugins and redhat-developer/rhdh-plugins).
  *
- * Expects the following local clones (created by the GitHub workflow):
- *   .clones/bcp           https://github.com/backstage/community-plugins
- *   .clones/overlay       https://github.com/redhat-developer/rhdh-plugin-export-overlays
- *   .clones/rhdh-plugins  https://github.com/redhat-developer/rhdh-plugins
+ * The locations of the local clones can be configured via the environment
+ * variables BCP_DIR, OVERLAY_DIR, and RHDH_PLUGINS_DIR (set to the .clones
+ * folders by the GitHub workflow). When they are not defined, the following
+ * local folders are expected:
+ *   ../../backstage/community-plugins     https://github.com/backstage/community-plugins
+ *   ../../rhd/rhdh-plugin-export-overlays https://github.com/redhat-developer/rhdh-plugin-export-overlays
+ *   ../../rhd/rhdh-plugins                https://github.com/redhat-developer/rhdh-plugins
  *
  * The script always exits with code 0; results are reported as a table.
  */
@@ -46,12 +49,14 @@ const WORKSPACES = [
   'translations',
 ];
 
-const OVERLAY_DIR = '.clones/overlay';
+const BCP_DIR = process.env.BCP_DIR || '../../backstage/community-plugins';
+const OVERLAY_DIR = process.env.OVERLAY_DIR || '../../rhd/rhdh-plugin-export-overlays';
+const RHDH_PLUGINS_DIR = process.env.RHDH_PLUGINS_DIR || '../../rhd/rhdh-plugins';
 
 /** Known source repositories mapped to their local clone directories. */
 const KNOWN_REPOS: Record<string, string> = {
-  'https://github.com/backstage/community-plugins': '.clones/bcp',
-  'https://github.com/redhat-developer/rhdh-plugins': '.clones/rhdh-plugins',
+  'https://github.com/backstage/community-plugins': BCP_DIR,
+  'https://github.com/redhat-developer/rhdh-plugins': RHDH_PLUGINS_DIR,
 };
 
 interface Row {

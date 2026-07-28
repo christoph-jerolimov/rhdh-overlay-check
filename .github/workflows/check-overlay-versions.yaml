@@ -2,9 +2,15 @@ name: Check overlay versions
 
 on:
   workflow_dispatch:
+  pull_request:
   schedule:
     # Once a day on workdays (Monday-Friday) at 06:00 UTC
     - cron: '0 6 * * 1-5'
+
+env:
+  BCP_DIR: .clones/bcp
+  OVERLAY_DIR: .clones/overlay
+  RHDH_PLUGINS_DIR: .clones/rhdh-plugins
 
 jobs:
   check:
@@ -17,19 +23,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: backstage/community-plugins
-          path: .clones/bcp
+          path: ${{ env.BCP_DIR }}
 
       - name: Clone redhat-developer/rhdh-plugin-export-overlays
         uses: actions/checkout@v4
         with:
           repository: redhat-developer/rhdh-plugin-export-overlays
-          path: .clones/overlay
+          path: ${{ env.OVERLAY_DIR }}
 
       - name: Clone redhat-developer/rhdh-plugins
         uses: actions/checkout@v4
         with:
           repository: redhat-developer/rhdh-plugins
-          path: .clones/rhdh-plugins
+          path: ${{ env.RHDH_PLUGINS_DIR }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -40,4 +46,6 @@ jobs:
         run: npm ci
 
       - name: Check overlay versions
+        # Prints the result table to the log and writes it as a markdown
+        # table to the GitHub workflow summary (GITHUB_STEP_SUMMARY).
         run: npm run check
