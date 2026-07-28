@@ -1,0 +1,43 @@
+name: Check overlay versions
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Once a day on workdays (Monday-Friday) at 06:00 UTC
+    - cron: '0 6 * * 1-5'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Clone backstage/community-plugins
+        uses: actions/checkout@v4
+        with:
+          repository: backstage/community-plugins
+          path: .clones/bcp
+
+      - name: Clone redhat-developer/rhdh-plugin-export-overlays
+        uses: actions/checkout@v4
+        with:
+          repository: redhat-developer/rhdh-plugin-export-overlays
+          path: .clones/overlay
+
+      - name: Clone redhat-developer/rhdh-plugins
+        uses: actions/checkout@v4
+        with:
+          repository: redhat-developer/rhdh-plugins
+          path: .clones/rhdh-plugins
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check overlay versions
+        run: npm run check
