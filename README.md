@@ -47,8 +47,8 @@ repositories in the following folders relative to this repository:
 | `RHDH_PLUGINS_DIR`   | `../../rhd/rhdh-plugins`                | https://github.com/redhat-developer/rhdh-plugins              |
 
 ```sh
-npm install
-npm run check
+yarn install
+yarn run check
 ```
 
 Or with explicit clone locations:
@@ -58,6 +58,6 @@ git clone --depth 1 https://github.com/backstage/community-plugins .clones/bcp
 git clone --depth 1 https://github.com/redhat-developer/rhdh-plugin-export-overlays .clones/overlay
 git clone --depth 1 https://github.com/redhat-developer/rhdh-plugins .clones/rhdh-plugins
 
-npm install
-BCP_DIR=.clones/bcp OVERLAY_DIR=.clones/overlay RHDH_PLUGINS_DIR=.clones/rhdh-plugins npm run check
+yarn install
+BCP_DIR=.clones/bcp OVERLAY_DIR=.clones/overlay RHDH_PLUGINS_DIR=.clones/rhdh-plugins yarn run check
 ```

@@ -12,5 +12,6 @@
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "yaml": "^2.6.0"
-  }
+  },
+  "packageManager": "yarn@4.17.1"
 }
