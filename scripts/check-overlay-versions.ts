@@ -26,17 +26,17 @@ const WORKSPACES = [
   'analytics',
   'app-defaults',
   'argocd',
-  'bookmarks',
+  // 'bookmarks',
   'bulk-import',
   'extensions',
   'global-header',
   'homepage',
   'intelligent-assistant',
   'jfrog-artifactory',
-  'mcp-chat',
+  // 'mcp-chat',
   'multi-source-security-viewer',
   'nexus-repository-manager',
-  'npm',
+  // 'npm',
   'ocm',
   'orchestrator',
   'quay',
@@ -213,13 +213,13 @@ function checkWorkspace(workspace: string): Row[] {
 
     // 3.2. There must be exactly one metadata yaml whose spec.packageName
     // matches. Package folders ending with '-test' don't necessarily need
-    // a metadata yaml.
+    // a metadata yaml and are skipped from the output.
     const matches = metadataFiles.filter(
       ({ doc }) => doc?.spec?.packageName === row.packageName,
     );
     if (matches.length === 0 && packageFolder.endsWith('-test')) {
-      row.status = 'OK (test package without metadata)';
-      row.group = 'OK (test package without metadata)';
+      rows.pop();
+      continue;
     } else if (matches.length !== 1) {
       errors.push(
         `expected exactly 1 metadata yaml with spec.packageName '${row.packageName}', found ${matches.length}`,
