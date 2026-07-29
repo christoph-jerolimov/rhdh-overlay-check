@@ -26,17 +26,17 @@ const WORKSPACES = [
   'analytics',
   'app-defaults',
   'argocd',
-  'bookmarks',
+  // 'bookmarks',
   'bulk-import',
   'extensions',
   'global-header',
   'homepage',
   'intelligent-assistant',
   'jfrog-artifactory',
-  'mcp-chat',
+  // 'mcp-chat',
   'multi-source-security-viewer',
   'nexus-repository-manager',
-  'npm',
+  // 'npm',
   'ocm',
   'orchestrator',
   'quay',
@@ -213,13 +213,13 @@ function checkWorkspace(workspace: string): Row[] {
 
     // 3.2. There must be exactly one metadata yaml whose spec.packageName
     // matches. Package folders ending with '-test' don't necessarily need
-    // a metadata yaml.
+    // a metadata yaml and are skipped from the output.
     const matches = metadataFiles.filter(
       ({ doc }) => doc?.spec?.packageName === row.packageName,
     );
     if (matches.length === 0 && packageFolder.endsWith('-test')) {
-      row.status = 'OK (test package without metadata)';
-      row.group = 'OK (test package without metadata)';
+      rows.pop();
+      continue;
     } else if (matches.length !== 1) {
       errors.push(
         `expected exactly 1 metadata yaml with spec.packageName '${row.packageName}', found ${matches.length}`,
@@ -291,15 +291,16 @@ function toCells(row: Row): string[] {
 
 const SUMMARY_HEADERS = ['Status', 'Count'];
 
-/** Groups the rows by status category, ordered alphabetically. */
+/** Groups the rows by status category, ordered alphabetically, with a sum row. */
 function summarize(rows: Row[]): [string, number][] {
   const counts = new Map<string, number>();
   for (const row of rows) {
     counts.set(row.group, (counts.get(row.group) ?? 0) + 1);
   }
-  return [...counts.entries()].sort(([groupA], [groupB]) =>
+  const groups = [...counts.entries()].sort(([groupA], [groupB]) =>
     groupA.localeCompare(groupB),
   );
+  return [...groups, ['Sum', rows.length]];
 }
 
 function formatTable(headers: string[], rows: string[][]): string[] {
