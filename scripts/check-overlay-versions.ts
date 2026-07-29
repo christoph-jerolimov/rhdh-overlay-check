@@ -291,15 +291,16 @@ function toCells(row: Row): string[] {
 
 const SUMMARY_HEADERS = ['Status', 'Count'];
 
-/** Groups the rows by status category, ordered alphabetically. */
+/** Groups the rows by status category, ordered alphabetically, with a sum row. */
 function summarize(rows: Row[]): [string, number][] {
   const counts = new Map<string, number>();
   for (const row of rows) {
     counts.set(row.group, (counts.get(row.group) ?? 0) + 1);
   }
-  return [...counts.entries()].sort(([groupA], [groupB]) =>
+  const groups = [...counts.entries()].sort(([groupA], [groupB]) =>
     groupA.localeCompare(groupB),
   );
+  return [...groups, ['Sum', rows.length]];
 }
 
 function formatTable(headers: string[], rows: string[][]): string[] {
