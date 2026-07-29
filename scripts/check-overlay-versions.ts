@@ -291,17 +291,14 @@ function toCells(row: Row): string[] {
 
 const SUMMARY_HEADERS = ['Status', 'Count'];
 
-/** Groups the rows by status category, ok statuses first, then by count. */
+/** Groups the rows by status category, ordered alphabetically. */
 function summarize(rows: Row[]): [string, number][] {
   const counts = new Map<string, number>();
   for (const row of rows) {
     counts.set(row.group, (counts.get(row.group) ?? 0) + 1);
   }
-  return [...counts.entries()].sort(
-    ([groupA, countA], [groupB, countB]) =>
-      Number(groupB.startsWith('OK')) - Number(groupA.startsWith('OK')) ||
-      countB - countA ||
-      groupA.localeCompare(groupB),
+  return [...counts.entries()].sort(([groupA], [groupB]) =>
+    groupA.localeCompare(groupB),
   );
 }
 
