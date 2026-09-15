@@ -15,6 +15,8 @@ and can also be triggered manually. It clones the three repositories into
 environment variables `BCP_DIR`, `OVERLAY_DIR`, and `RHDH_PLUGINS_DIR`.
 The result table is printed to the log, to the GitHub workflow summary, and
 to the wiki **Home** page (on scheduled and manual runs, not on pull requests).
+Each run also archives the report as `YYYY-MM-DD.md` in the wiki; dated reports
+older than 14 days are removed automatically.
 The workflow never fails on version mismatches.
 
 ## Checks

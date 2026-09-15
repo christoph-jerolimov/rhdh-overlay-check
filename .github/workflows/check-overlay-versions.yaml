@@ -63,6 +63,8 @@ jobs:
           WIKI_PAGE: Home.md
         run: |
           set -euo pipefail
+          REPORT_DATE="$(date -u +%F)"
+          RETENTION_CUTOFF="$(date -u -d '14 days ago' +%F)"
           WIKI_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
           if git clone --depth 1 "$WIKI_URL" wiki 2>/dev/null; then
             :
@@ -75,16 +77,23 @@ jobs:
             )
           fi
           cp wiki-home.md "wiki/${WIKI_PAGE}"
+          cp wiki-home.md "wiki/${REPORT_DATE}.md"
           (
             cd wiki
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             rm -f Overlay-version-check.md
+            for report in ????-??-??.md; do
+              if [[ -f "$report" && "$report" < "${RETENTION_CUTOFF}.md" ]]; then
+                echo "Removing expired report: $report"
+                rm -f "$report"
+              fi
+            done
             git add -A
             if git diff --staged --quiet; then
               echo "Wiki page is already up to date."
             else
-              git commit -m "Update overlay version check results"
+              git commit -m "Update overlay version check results for ${REPORT_DATE}"
               git push origin HEAD:master || git push origin HEAD:main
             fi
           )
