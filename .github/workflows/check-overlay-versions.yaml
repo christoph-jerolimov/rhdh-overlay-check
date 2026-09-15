@@ -51,16 +51,16 @@ jobs:
       - name: Check overlay versions
         # Prints the result table to the log and writes it as a markdown
         # table to the GitHub workflow summary (GITHUB_STEP_SUMMARY) and
-        # to overlay-version-check.md for the wiki update step below.
+        # to wiki-home.md for the wiki update step below.
         run: yarn run check
         env:
-          OUTPUT_FILE: overlay-version-check.md
+          OUTPUT_FILE: wiki-home.md
 
       - name: Update wiki
         if: github.event_name != 'pull_request'
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          WIKI_PAGE: Overlay-version-check.md
+          WIKI_PAGE: Home.md
         run: |
           set -euo pipefail
           WIKI_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
@@ -74,12 +74,13 @@ jobs:
               git remote add origin "$WIKI_URL"
             )
           fi
-          cp overlay-version-check.md "wiki/${WIKI_PAGE}"
+          cp wiki-home.md "wiki/${WIKI_PAGE}"
           (
             cd wiki
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add "$WIKI_PAGE"
+            rm -f Overlay-version-check.md
+            git add -A
             if git diff --staged --quiet; then
               echo "Wiki page is already up to date."
             else
