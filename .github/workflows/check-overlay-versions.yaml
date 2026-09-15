@@ -59,6 +59,7 @@ jobs:
       - name: Update wiki
         if: github.event_name != 'pull_request'
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           WIKI_PAGE: Overlay-version-check.md
         run: |
           set -euo pipefail
