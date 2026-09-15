@@ -326,15 +326,13 @@ function printTables(rows: Row[]) {
   }
 }
 
-/** Writes the results as a markdown table to the GitHub job summary, if available. */
-function writeGitHubSummary(rows: Row[]) {
-  const summaryFile = process.env.GITHUB_STEP_SUMMARY;
-  if (!summaryFile) {
-    return;
-  }
+function formatGitHubMarkdown(rows: Row[]): string {
   const escape = (cell: string) => cell.replace(/\|/g, '\\|');
-  const lines = [
+  const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+  return [
     '## Overlay version check',
+    '',
+    `_Last updated: ${now} (automated)_`,
     '',
     `| ${SUMMARY_HEADERS.join(' | ')} |`,
     `| ${SUMMARY_HEADERS.map(() => '---').join(' | ')} |`,
@@ -344,14 +342,32 @@ function writeGitHubSummary(rows: Row[]) {
     `| ${HEADERS.map(() => '---').join(' | ')} |`,
     ...rows.map(row => `| ${toCells(row).map(escape).join(' | ')} |`),
     '',
-  ];
-  fs.appendFileSync(summaryFile, lines.join('\n'));
+  ].join('\n');
+}
+
+/** Writes the results as a markdown table to the GitHub job summary, if available. */
+function writeGitHubSummary(rows: Row[]) {
+  const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+  if (!summaryFile) {
+    return;
+  }
+  fs.appendFileSync(summaryFile, formatGitHubMarkdown(rows));
+}
+
+/** Writes the results as a markdown file when OUTPUT_FILE is set. */
+function writeOutputFile(rows: Row[]) {
+  const outputFile = process.env.OUTPUT_FILE;
+  if (!outputFile) {
+    return;
+  }
+  fs.writeFileSync(outputFile, formatGitHubMarkdown(rows));
 }
 
 const rows = WORKSPACES.flatMap(checkWorkspace);
 
 printTables(rows);
 writeGitHubSummary(rows);
+writeOutputFile(rows);
 
 const errorCount = rows.filter(row => !row.status.startsWith('OK')).length;
 console.log();

@@ -15,6 +15,8 @@ env:
 jobs:
   check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout this repository
         uses: actions/checkout@v4
@@ -48,5 +50,39 @@ jobs:
 
       - name: Check overlay versions
         # Prints the result table to the log and writes it as a markdown
-        # table to the GitHub workflow summary (GITHUB_STEP_SUMMARY).
+        # table to the GitHub workflow summary (GITHUB_STEP_SUMMARY) and
+        # to overlay-version-check.md for the wiki update step below.
         run: yarn run check
+        env:
+          OUTPUT_FILE: overlay-version-check.md
+
+      - name: Update wiki
+        if: github.event_name != 'pull_request'
+        env:
+          WIKI_PAGE: Overlay-version-check.md
+        run: |
+          set -euo pipefail
+          WIKI_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
+          if git clone --depth 1 "$WIKI_URL" wiki 2>/dev/null; then
+            :
+          else
+            mkdir wiki
+            (
+              cd wiki
+              git init -b master
+              git remote add origin "$WIKI_URL"
+            )
+          fi
+          cp overlay-version-check.md "wiki/${WIKI_PAGE}"
+          (
+            cd wiki
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add "$WIKI_PAGE"
+            if git diff --staged --quiet; then
+              echo "Wiki page is already up to date."
+            else
+              git commit -m "Update overlay version check results"
+              git push origin HEAD:master || git push origin HEAD:main
+            fi
+          )

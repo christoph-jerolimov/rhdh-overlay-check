@@ -13,7 +13,9 @@ workflow runs once a day on workdays (Mon-Fri, 06:00 UTC), on pull requests,
 and can also be triggered manually. It clones the three repositories into
 `.clones/` and passes the clone locations to the check script via the
 environment variables `BCP_DIR`, `OVERLAY_DIR`, and `RHDH_PLUGINS_DIR`.
-The result table is printed to the log and to the GitHub workflow summary.
+The result table is printed to the log, to the GitHub workflow summary, and
+to the **Overlay version check** wiki page (on scheduled and manual runs, not
+on pull requests).
 The workflow never fails on version mismatches.
 
 ## Checks
