@@ -289,7 +289,7 @@ function toCells(row: Row): string[] {
   ];
 }
 
-const SUMMARY_HEADERS = ['Status', 'Count'];
+const SUMMARY_HEADERS = ['Status', 'Count', '%'];
 
 /** Groups the rows by status category, ordered alphabetically, with a sum row. */
 function summarize(rows: Row[]): [string, number][] {
@@ -300,7 +300,27 @@ function summarize(rows: Row[]): [string, number][] {
   const groups = [...counts.entries()].sort(([groupA], [groupB]) =>
     groupA.localeCompare(groupB),
   );
-  return [...groups, ['Sum', rows.length]];
+  const nokCount = rows.filter(row => !row.status.startsWith('OK')).length;
+  return [...groups, ['NOK', nokCount], ['Sum', rows.length]];
+}
+
+function formatPercentage(count: number, total: number, isSum: boolean): string {
+  if (isSum) {
+    return '100%';
+  }
+  if (total === 0) {
+    return '0%';
+  }
+  return `${((count / total) * 100).toFixed(1)}%`;
+}
+
+function summaryRows(rows: Row[]): string[][] {
+  const total = rows.length;
+  return summarize(rows).map(([group, count]) => [
+    group,
+    String(count),
+    formatPercentage(count, total, group === 'Sum'),
+  ]);
 }
 
 function formatTable(headers: string[], rows: string[][]): string[] {
@@ -316,7 +336,7 @@ function formatTable(headers: string[], rows: string[][]): string[] {
 }
 
 function printTables(rows: Row[]) {
-  const summary = summarize(rows).map(([group, count]) => [group, String(count)]);
+  const summary = summaryRows(rows);
   for (const line of formatTable(SUMMARY_HEADERS, summary)) {
     console.log(line);
   }
@@ -336,7 +356,7 @@ function formatGitHubMarkdown(rows: Row[]): string {
     '',
     `| ${SUMMARY_HEADERS.join(' | ')} |`,
     `| ${SUMMARY_HEADERS.map(() => '---').join(' | ')} |`,
-    ...summarize(rows).map(([group, count]) => `| ${escape(group)} | ${count} |`),
+    ...summaryRows(rows).map(cells => `| ${cells.map(escape).join(' | ')} |`),
     '',
     `| ${HEADERS.join(' | ')} |`,
     `| ${HEADERS.map(() => '---').join(' | ')} |`,
